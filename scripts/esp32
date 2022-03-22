@@ -1,0 +1,3 @@
+export PYTHONPATH=/usr/local/lib/python3.9/dist-packages
+export IDF_PATH=~/ESP32/esp-idf
+export PATH=~/ESP32/esp-idf/tools:~/ESP32/xtensa-esp32-elf/bin:$PATH

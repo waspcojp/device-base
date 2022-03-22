@@ -1,0 +1,148 @@
+swagger: "2.0"
+info:
+  description: "DeviceConsoleでデバイスを設定する時の、デバイスのWiFiが持っているAPI"
+  version: "1.0.0"
+  title: "Device API"
+  contact:
+    email: "ogochan@wasp.co.jp"
+  license:
+    name: "LGPL 2.0"
+basePath: "/"
+tags:
+- name: "WiFi"
+  description: "WiFi settings"
+- name: "device"
+  description: "create device"
+schemes:
+- "https"
+- "http"
+paths:
+  /wifi/config:
+    post:
+      tags:
+      - "WiFi"
+      summary: "setting wifi connection parameters"
+      description: ""
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "wifi configuration"
+        required: true
+        schema:
+          $ref: "#/definitions/WifiConfig"
+      responses:
+        "405":
+          description: "Invalid input"
+  /wifi/scan:
+    get:
+      tags:
+      - "WiFi"
+      summary: "get AP list"
+      description: ""
+      operationId: "findPetsByStatus"
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/AP_Entry"
+        "400":
+          description: "Invalid status value"
+  /device:
+    post:
+      tags:
+        - "device"
+      summary: "create new device"
+      description: ""
+      consumes:
+        - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "device create parameters"
+        required: true
+        schema:
+          $ref: "#/definitions/DeviceCreationParameter"
+      responses:
+          "405":
+            description: "Invalid input"
+  /device/login:
+    post:
+      tags:
+        - "device"
+      summary: "login device"
+      description: ""
+      consumes:
+        - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "device create parameters"
+        required: true
+        schema:
+          $ref: "#/definitions/DeviceLoginParameter"
+      responses:
+          "405":
+            description: "Invalid input"
+  /device/reboot:
+    post:
+      tags:
+        - "device"
+      summary: "reboot device"
+      description: ""
+      parameters:
+      - name: user
+        in: query
+        type: "string"
+      - name: pass
+        in: query
+        type: "string"
+      responses:
+        "200":
+          description: "successful operation"
+        "405":
+          description: "Invalid operation"
+definitions:
+  WifiConfig:
+    type: "object"
+    properties:
+      ssid:
+        type: "string"
+      pass:
+        type: "string"
+  AP_Entry:
+    type: "object"
+    properties:
+      ssid:
+        type: "string"
+      rssi:
+        type: "integer"
+        format: "int32"
+  DeviceLoginParameter:
+    type: "object"
+    properties:
+      user:
+        type: "string"
+        description: "DeviceConsole login user name"
+      password:
+        type: "string"
+        description: "DeviceConsole login password"
+  DeviceCreationParameter:
+    type: "object"
+    properties:
+      user:
+        type: "string"
+        description: "DeviceConsole login user name"
+      password:
+        type: "string"
+        description: "DeviceConsole login password"
+      name:
+        type: "string"
+        description: "device identify name"
