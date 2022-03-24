@@ -32,8 +32,9 @@ class SensorInfo
 	esp_err_t	err_code;
 	uint8_t		id;
 
-	SensorInfo();
-	~SensorInfo();
+	SensorInfo(){ fValid = false;};
+	~SensorInfo() {};
 };
+
 
 #endif

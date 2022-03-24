@@ -10,8 +10,6 @@ extern "C" {
 #ifdef	HAVE_BME280
 #include	"BME280.h"
 
-#define	TAG	"BME280"
-
 // static members declaration with initial value
 
 uint16_t	BME280::dig_T1 = 0;
@@ -49,7 +47,7 @@ ENTER_FUNC;
 
 	getvalid = mI2C.readByte(BME280_START);
 	err_code = mI2C.err_code;
-	ESP_LOGI(TAG, "BME280_START:%02x", getvalid);
+	dbgprintf("BME280_START:%02x", getvalid);
 
 	if(err_code == ESP_OK && getvalid == 0x60 )	{
 		fValid = true;
@@ -74,10 +72,10 @@ ENTER_FUNC;
 		dig_H4 = ( (int16_t)mI2C.readByte(0xE4) << 4 ) | ( 0x0F & (int16_t)mI2C.readByte(0xE5) );
 		dig_H5 = ( (int16_t)mI2C.readByte(0xE6) << 4 ) | ( 0x0F & ( (int16_t)mI2C.readByte(0xE5) >> 4 ) );
 		dig_H6 = (int8_t)mI2C.readByte(0xE7);
-		ESP_LOGI(TAG, "valid");
+		dbgmsg("valid");
 	} else {
 		fValid = false;
-		ESP_LOGE(TAG, "invalid");
+		dbgmsg("invalid");
 
 	}
 LEAVE_FUNC;

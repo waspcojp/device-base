@@ -7,12 +7,3 @@ extern "C" {
 #include	"SensorInfo.h"
 
 const	uint8_t	SensorInfo::precision = 0;
-
-SensorInfo::SensorInfo()
-{
-	fValid = false;
-}
-
-SensorInfo::~SensorInfo()
-{
-}
