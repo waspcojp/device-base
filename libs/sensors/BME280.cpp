@@ -1,16 +1,14 @@
 #define	TRACE
 
 extern "C" {
+#include	"config.h"
 #include 	"driver/i2c.h"
 #include 	"esp_log.h"
+#include	"debug.h"
 }
 
-#include	"config.h"
-#include	"debug.h"
 
 #include	"BME280.h"
-#include	"SensorInfo.h"
-#include	"SenseBuffer.h"
 
 #define	TAG	"BME280"
 
