@@ -7,7 +7,7 @@ extern "C" {
 #include	"debug.h"
 }
 
-
+#ifdef	HAVE_BME280
 #include	"BME280.h"
 
 #define	TAG	"BME280"
@@ -88,4 +88,4 @@ BME280::~BME280()
 {
 }
 
-
+#endif
