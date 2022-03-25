@@ -39,8 +39,8 @@ start(void)
 {
 	msleep(1000);
 
-	get_settings();
 #ifdef	USE_WIFI
+	get_settings();
 	if	( wifi_is_valid() )	{
 		initialize_sntp();
 		while	( !sntp_valid() )	{
@@ -52,12 +52,12 @@ start(void)
 	initialize_schedules();
 	dbgmsg( "all preparation is done");
 	start_schedule();
-#ifdef	USE_COMMAND
 #ifndef USE_V_WATCH
+#ifdef	USE_COMMAND
 	start_command();
+#endif
 #else
 	start_v_watch();
-#endif
 #endif
 }
 
@@ -77,9 +77,8 @@ ENTER_FUNC;
 	load_device_info();
 #ifdef	USE_WIFI
 	initialize_wifi();
-#endif
-
 	initialize_api();
+#endif
 
 #ifdef DEBUG
 	count_reset = 0;

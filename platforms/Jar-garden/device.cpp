@@ -722,7 +722,7 @@ ENTER_FUNC;
 LEAVE_FUNC;
 }
 
-extern	void
+static	void
 initialize_sensors(void)
 {
 	initialize_sensors_common();

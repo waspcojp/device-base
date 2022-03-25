@@ -2,7 +2,7 @@ idf_component_register(SRCS
     misc.c
     ota.c
     schedule.cpp schedule_funcs.c
-    wifi.c nvs.c
+    nvs.c
     sntp.c utility.cpp
     api_client.c httpc.c
     setup_mode.cpp
