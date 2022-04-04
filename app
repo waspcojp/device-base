@@ -1,1 +1,1 @@
-platforms/Jar-garden
+platforms/template/

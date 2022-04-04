@@ -13,7 +13,12 @@ extern "C"{
 #include	<sys/time.h>
 #include	"nvs.h"
 #include	"misc.h"
+#ifdef	USE_WIFI
 #include	"wifi.h"
+#endif
+#ifdef	USE_BT
+#include	"bt.h"
+#endif
 #include	"schedule_funcs.h"
 #include	"api_client.h"
 #include	"sntp.h"
@@ -78,6 +83,9 @@ ENTER_FUNC;
 #ifdef	USE_WIFI
 	initialize_wifi();
 	initialize_api();
+#endif
+#ifdef	USE_BT
+	initialize_bt();
 #endif
 
 #ifdef DEBUG
