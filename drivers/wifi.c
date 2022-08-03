@@ -11,12 +11,15 @@
 #include 	"esp_system.h"
 #include	"esp_wifi.h"
 #include	"esp_event.h"
+#include	"esp_mac.h"
+#include	"esp_netif.h"
 //#include	"esp_event_loop.h"
 #include 	"esp_log.h"
 #include	"time.h"
 
 #include	"lwip/err.h"
 #include	"lwip/sys.h"
+#include	"lwip/ip_addr.h"
 
 #include 	"config.h"
 #include	"wifi.h"
@@ -51,13 +54,13 @@ event_handler(
 		wifi_event_ap_staconnected_t *wifi_event = (wifi_event_ap_staconnected_t *) event_data;
 
 		switch(event_id) {
-	  	  case SYSTEM_EVENT_STA_START:
+	  	  case WIFI_EVENT_STA_START:
         	esp_wifi_connect();
     		break;
 		  case WIFI_EVENT_AP_START:
 			dbgmsg("AP start");
 			break;
-		  case SYSTEM_EVENT_STA_DISCONNECTED:
+		  case WIFI_EVENT_STA_DISCONNECTED:
 			if	(  s_retry_num < MAX_RETRY )	{
 				esp_wifi_connect();
 				s_retry_num ++;
@@ -65,14 +68,15 @@ event_handler(
 			} else {
 				xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
 				dbgmsg("connect to the AP fail\n");
+				wifi_connected = FALSE;
 			}
 			break;
 		  case	WIFI_EVENT_AP_STACONNECTED:
-        	dbgprintf( "station "MACSTR" join, AID=%d",
+        	dbgprintf( "station %s join, AID=%d",
             	     MAC2STR(wifi_event->mac), wifi_event->aid);
 			break;
 		  case	WIFI_EVENT_AP_STADISCONNECTED:
-        	dbgprintf( "station "MACSTR" leave, AID=%d",
+        	dbgprintf( "station %s leave, AID=%d",
             	     MAC2STR(wifi_event->mac), wifi_event->aid);
 			break;
 		  default:
@@ -80,12 +84,14 @@ event_handler(
     	}
 	}
 	if	( event_base ==  IP_EVENT ) {
+#define	SIZE_SBUFF		32
 		ip_event_got_ip_t	*event = (ip_event_got_ip_t*)event_data;
+		char	buff[SIZE_SBUFF];
 		wifi_event_ap_staconnected_t *wifi_event = (wifi_event_ap_staconnected_t *) event_data;
 		switch(event_id) {
 		  case IP_EVENT_STA_GOT_IP:
  	    	dbgprintf( "got ip:%s",
-                		ip4addr_ntoa(&event->ip_info.ip));
+                		esp_ip4addr_ntoa(&event->ip_info.ip, buff, SIZE_SBUFF));
  			wifi_connected = TRUE;
 			s_retry_num = 0;
 			xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
@@ -245,8 +251,16 @@ wifi_connect(
 {
 	Bool	rc;
 ENTER_FUNC;
-	strcpy((char *)wifi_config.sta.ssid, ssid);
-	strcpy((char *)wifi_config.sta.password, password);
+	if	( ssid )	{
+		strcpy((char *)wifi_config.sta.ssid, ssid);
+	} else {
+		strcpy((char *)wifi_config.sta.ssid, ap_ssid);
+	}
+	if	( password )	{
+		strcpy((char *)wifi_config.sta.password, password);
+	} else {
+		strcpy((char *)wifi_config.sta.password, ap_pass);
+	}
 
 	rc = FALSE;
 	if	( !wifi_connected ) {
@@ -259,24 +273,24 @@ ENTER_FUNC;
 			ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
 			ESP_ERROR_CHECK(esp_wifi_connect());
 		}
-		dbgmsg("*");
 		EventBits_t bits = xEventGroupWaitBits(s_wifi_event_group,
     			WIFI_CONNECTED_BIT | WIFI_FAIL_BIT,
     			pdFALSE,
     			pdFALSE,
 				( 1000 * 30 ) / portTICK_PERIOD_MS);
     			//portMAX_DELAY);
-		dbgmsg("*");
 		if	( bits & WIFI_CONNECTED_BIT )	{
     		dbgprintf("connected to ap SSID:%s password:%s", ssid, password);
 			rc = TRUE;
 			wifi_started = TRUE;
-    	} else
-		if	( bits & WIFI_FAIL_BIT )	{
-    		dbgprintf("Failed to connect to SSID:%s, password:%s", ssid, password);
     	} else {
-        	ESP_LOGE("", "UNEXPECTED EVENT");
-    	}
+			if	( bits & WIFI_FAIL_BIT )	{
+    			dbgprintf("Failed to connect to SSID:%s, password:%s", ssid, password);
+    		} else {
+        		ESP_LOGE("", "UNEXPECTED EVENT");
+    		}
+			wifi_started = FALSE;
+		}
 
     	ESP_ERROR_CHECK(esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, instance_got_ip));
     	ESP_ERROR_CHECK(esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_any_id));

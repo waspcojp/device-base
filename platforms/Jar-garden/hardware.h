@@ -4,6 +4,7 @@
 #define DEVICE_CLASS            "jar-garden"
 
 #define JAR_GARDEN
+#define OLD_HARD
 
 /*  sensors */
 #define	HAVE_SENSORS
@@ -33,6 +34,17 @@
 #define COLOR_DR                4
 
 /*	port and channel	*/
+#ifdef  OLD_HARD
+#define	SCL_PORT				GPIO_NUM_16
+#define	SDA_PORT				GPIO_NUM_17
+#define	NEOPIXEL_LED_PORT		GPIO_NUM_18
+#define	FAN_PORT				GPIO_NUM_19
+#define	RGBW_LED_R_PORT			GPIO_NUM_22
+#define	RGBW_LED_G_PORT			GPIO_NUM_21
+#define	RGBW_LED_B_PORT			GPIO_NUM_5
+#define	RGBW_LED_W_PORT			GPIO_NUM_4
+#define	RGBW_LED_DR_PORT		GPIO_NUM_23
+#else
 #define	SCL_PORT				GPIO_NUM_16
 #define	SDA_PORT				GPIO_NUM_17
 #define	NEOPIXEL_LED_PORT		GPIO_NUM_33
@@ -42,6 +54,7 @@
 #define	RGBW_LED_B_PORT			GPIO_NUM_12
 #define	RGBW_LED_W_PORT			GPIO_NUM_25
 #define	RGBW_LED_DR_PORT		GPIO_NUM_26
+#endif
 #define	RGBW_LED_TIMER_MODE		LEDC_HIGH_SPEED_MODE
 #define	RGBW_LED_TIMER			LEDC_TIMER_0
 #define	RGBW_LED_CH_R			LEDC_CHANNEL_0

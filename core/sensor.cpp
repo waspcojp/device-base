@@ -160,12 +160,14 @@ sensor_send_server(void)
 ENTER_FUNC;
 #ifdef	USE_WIFI
 	if	( wifi_is_valid () )	{
+		wifi_connect(NULL, NULL);
 		if		( sensor_url == NULL )	{
 			sprintf(real_path, "%s/device/%s/data", CONSOLE_HOST, my_device_id);
 		} else {
 			strcpy(real_path, sensor_url);
 		}
 		rc = post_http(NULL, real_path, my_session_key);
+		wifi_disconnect();
 	} else {
 		rc = FALSE;
 	}

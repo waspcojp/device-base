@@ -51,6 +51,7 @@ start(void)
 		while	( !sntp_valid() )	{
 			msleep(1000*10);
 		}
+		wifi_disconnect();
 	}
 #endif
 	init_schedule_func();

@@ -124,7 +124,6 @@ _device_new(
 			strncpy(name, node->valuestring, SIZE_NAME+1);
 		}
 		node = cJSON_GetObjectItemCaseSensitive(root, "description");
-		cJSON_Delete(root);
 		if		(	( *user != 0 )
 				&&	( *pass != 0 ) )	{
 			client = initialize_httpc();
@@ -141,6 +140,7 @@ _device_new(
 			}
 			finish_httpc(client);
 		}
+		cJSON_Delete(root);
 	}
 	return	(rc);
 }

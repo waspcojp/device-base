@@ -64,6 +64,8 @@ _http_event_handle(
 	  case HTTP_EVENT_DISCONNECTED:
 		dbgmsg( "HTTP_EVENT_DISCONNECTED");
 		break;
+	  default:
+		break;
 	}
 	return ESP_OK;
 }

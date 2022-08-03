@@ -12,6 +12,8 @@ extern "C" {
 }
 
 class	SenseBuffer	{
+  private:
+	SemaphoreHandle_t	mutex;
   public:
 	void	put(void *data, size_t size)	{
 		xSemaphoreTake(mutex, portMAX_DELAY);
@@ -103,8 +105,6 @@ class	SenseBuffer	{
 	uint8_t	*_buff;
 	uint8_t	*_w_pointer;
 	uint8_t	*_r_pointer;
-  private:
-	xSemaphoreHandle	mutex;
 };
 
 #endif

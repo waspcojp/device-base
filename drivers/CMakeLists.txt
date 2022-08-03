@@ -6,4 +6,4 @@ idf_component_register(SRCS
         SPI.cpp
         neopixel.c
     INCLUDE_DIRS "." "../includes" "../core"
-    REQUIRES bt)
+    REQUIRES bt driver)

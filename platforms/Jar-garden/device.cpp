@@ -312,6 +312,9 @@ get_led_schedule(void)
 ENTER_FUNC;
 	reset_led_schedule();
 
+	if	( !wifi_is_valid() )	{
+		wifi_connect(NULL, NULL);
+	}
 	if	( wifi_is_valid () )	{
 		client = initialize_httpc();
 		for	( int i = 0; i < MAX_RETRY; i ++ )	{
