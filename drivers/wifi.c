@@ -38,6 +38,7 @@ static	int					s_retry_num = 0;
 static	wifi_ap_record_t	aps[NUM_APS];
 static	Bool	wifi_started;
 static	Bool	wifi_connected;
+static	Bool	ap_started;
 static	esp_netif_t *if_ap;
 static	esp_netif_t *if_sta;
 static	wifi_config_t wifi_config;
@@ -79,7 +80,11 @@ event_handler(
         	dbgprintf( "station %s leave, AID=%d",
             	     MAC2STR(wifi_event->mac), wifi_event->aid);
 			break;
+		  case	WIFI_EVENT_STA_CONNECTED:
+			dbgmsg("sta connected");
+			break;
 		  default:
+			dbgprintf("event %d", event_id);
         	break;
     	}
 	}
@@ -127,7 +132,6 @@ initialize_wifi(void)
         	.route_prio = 10
 		};
 ENTER_FUNC;
-	s_wifi_event_group = xEventGroupCreate();
 	ERROR_CHECK(esp_netif_init());
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 #if	0
@@ -147,22 +151,25 @@ ENTER_FUNC;
 	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
 	ERROR_CHECK( esp_wifi_init(&cfg) );
 
-    ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
+	ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM));
+
+	s_wifi_event_group = xEventGroupCreate();
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
                                                     ESP_EVENT_ANY_ID,
                                                     &event_handler,
                                                     if_ap,
                                                     &instance_any_id));
-    ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT,
-                                                    IP_EVENT_STA_GOT_IP,
+    ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT,
+        	                                        IP_EVENT_STA_GOT_IP,
                                                     &event_handler,
                                                     if_sta,
                                                     &instance_got_ip));
 
 
-	ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM));
 
 	wifi_started = FALSE;
 	wifi_connected = FALSE;
+	ap_started = FALSE;
   err_exit:
 LEAVE_FUNC;
     return	(err);
@@ -196,6 +203,7 @@ wifi_ap_start(
     dbgprintf( "wifi_init_softap finished. SSID:%s password:%s",
              my_ssid, my_pass);
 	wifi_started = TRUE;
+	ap_started = TRUE;
 }
 
 extern	void
@@ -264,7 +272,7 @@ ENTER_FUNC;
 
 	rc = FALSE;
 	if	( !wifi_connected ) {
-		if	( !wifi_started )	{
+		if	( !ap_started )	{
 			ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA) );
 			ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_config) );
 
@@ -280,22 +288,22 @@ ENTER_FUNC;
 				( 1000 * 30 ) / portTICK_PERIOD_MS);
     			//portMAX_DELAY);
 		if	( bits & WIFI_CONNECTED_BIT )	{
-    		dbgprintf("connected to ap SSID:%s password:%s", ssid, password);
+    		dbgprintf("connected to ap SSID:%s password:%s",
+								wifi_config.sta.ssid,
+								wifi_config.sta.password);
 			rc = TRUE;
 			wifi_started = TRUE;
     	} else {
 			if	( bits & WIFI_FAIL_BIT )	{
-    			dbgprintf("Failed to connect to SSID:%s, password:%s", ssid, password);
+    			dbgprintf("Failed to connect to SSID:%s, password:%s",
+								wifi_config.sta.ssid,
+								wifi_config.sta.password);
     		} else {
-        		ESP_LOGE("", "UNEXPECTED EVENT");
+        		ESP_LOGE("", "UNEXPECTED EVENT %X", (int)bits);
     		}
 			wifi_started = FALSE;
 		}
 
-    	ESP_ERROR_CHECK(esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, instance_got_ip));
-    	ESP_ERROR_CHECK(esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_any_id));
-		dbgmsg("*");
-    	vEventGroupDelete(s_wifi_event_group);
 	} else {
 		rc = TRUE;
 	}
@@ -306,19 +314,14 @@ LEAVE_FUNC;
 extern	Bool
 wifi_is_valid(void)
 {
-	return	(wifi_started);
+	return	(wifi_connected);
 }
 extern	void
 wifi_disconnect(void)
 {
 	if	( wifi_connected )	{
 		ESP_ERROR_CHECK( esp_wifi_stop() );
-		ESP_ERROR_CHECK( esp_wifi_deinit() );
-	    ESP_ERROR_CHECK(esp_event_loop_delete_default());
-		esp_netif_destroy(if_ap);
-		esp_netif_destroy(if_sta);
 		wifi_connected = FALSE;
-		wifi_started = FALSE;
 	}
 }
 extern	void
@@ -330,4 +333,14 @@ ENTER_FUNC;
 		wifi_started = FALSE;
 	}
 LEAVE_FUNC;
+}
+
+extern	void
+wifi_finish(void)		//	not work well
+{
+   	ESP_ERROR_CHECK(esp_event_handler_instance_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, instance_got_ip));
+   	ESP_ERROR_CHECK(esp_event_handler_instance_unregister(WIFI_EVENT, ESP_EVENT_ANY_ID, instance_any_id));
+	ESP_ERROR_CHECK( esp_wifi_deinit() );
+
+    ESP_ERROR_CHECK(esp_event_loop_delete_default());
 }

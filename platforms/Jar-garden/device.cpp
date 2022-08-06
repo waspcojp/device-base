@@ -310,8 +310,6 @@ get_led_schedule(void)
 	
 
 ENTER_FUNC;
-	reset_led_schedule();
-
 	if	( !wifi_is_valid() )	{
 		wifi_connect(NULL, NULL);
 	}
@@ -341,7 +339,13 @@ ENTER_FUNC;
 		ResponseMessage[size] = 0;
 		httpc_close(client);
 		finish_httpc(client);
+		wifi_disconnect();
 	} else {
+		if	( nSchedules > 0 )	{
+			dbgmsg("temporary communication error");
+			dbgmsg("no update schedule.");
+			goto	no_update;
+		};
 		dbgmsg("standalone mode");
 		strcpy(ResponseMessage, "["
 			"{"
@@ -385,6 +389,7 @@ ENTER_FUNC;
 	root = cJSON_Parse(ResponseMessage);
  	ev = NULL;
 	if	( root )	{
+		reset_led_schedule();
 		nsc = 0;
 		dbgprintf("type = %d", root->type);
 		cJSON_ArrayForEach(entry, root)	{
@@ -497,6 +502,7 @@ ENTER_FUNC;
 	} else {
 		dbgprintf("error in %s", cJSON_GetErrorPtr());
 	}
+  no_update:;
 LEAVE_FUNC;
 }
 
@@ -630,6 +636,9 @@ ENTER_FUNC;
 	led_schedule_interval = 3600;
 	sensor_interval = 30;
 #ifdef	USE_WIFI
+	if	( !wifi_is_valid() )	{
+		wifi_connect(NULL, NULL);
+	}
 	if	( wifi_is_valid() )	{
 		client = initialize_httpc();
 		for	( int i = 0; i < MAX_RETRY; i ++ )	{

@@ -17,6 +17,7 @@
 #endif
 #include	"globals.h"
 #include	"misc.h"
+#include	"wifi.h"
 #include 	"debug.h"
 
 #include	"utility.h"
@@ -42,7 +43,15 @@ check_ota(
 		if		(	( !done )
 				&&	( at > ota_min ) )	{
 #ifdef	USE_WIFI
-			ret = api_exec_ota();
+			if	( !wifi_is_valid() )	{
+				wifi_connect(NULL, NULL);
+			}
+			if	( wifi_is_valid() )	{
+				ret = api_exec_ota();
+				wifi_disconnect();
+			} else {
+				ret = FALSE;
+			}
 #else
 			ret = FALSE;
 #endif

@@ -19,6 +19,7 @@
 
 #include	"types.h"
 #include	"sntp.h"
+#include	"wifi.h"
 #include	"globals.h"
 #include	"misc.h"
 #include 	"debug.h"
@@ -48,6 +49,9 @@ sync_time(void)
 
 	sleep_second = MIN_NTP_SLEEP;
 	while	(TRUE)	{
+		if	( !wifi_is_valid() )	{
+			wifi_connect(NULL, NULL);
+		}
 		sntp_init();
 		time(&before);
 		localtime_r(&before, &timeinfo);

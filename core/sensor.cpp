@@ -159,8 +159,11 @@ sensor_send_server(void)
 	Bool	rc = TRUE;
 ENTER_FUNC;
 #ifdef	USE_WIFI
-	if	( wifi_is_valid () )	{
+	if	( !wifi_is_valid() )	{
+		wifi_disconnect();
 		wifi_connect(NULL, NULL);
+	}
+	if	( wifi_is_valid () )	{
 		if		( sensor_url == NULL )	{
 			sprintf(real_path, "%s/device/%s/data", CONSOLE_HOST, my_device_id);
 		} else {
